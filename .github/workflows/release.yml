@@ -27,7 +27,7 @@ jobs:
             # The job will fail automatically if any test fails because `dotnet test` exits with a non-zero code
             - name: Run tests - Extensions
               run: dotnet run -c Release --no-restore --no-build
-              working-directory: "tests/CodeOfChaos.Parsers.Csv"
+              working-directory: "tests/Tests.CodeOfChaos.Parsers.Csv"
 
             - name: Publish to NuGet
               env:
