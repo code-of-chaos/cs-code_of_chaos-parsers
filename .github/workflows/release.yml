@@ -18,19 +18,19 @@ jobs:
                   dotnet-version: '9.x'
 
             - name: Restore dependencies
-              run: dotnet restore TEMPLATE.sln
+              run: dotnet restore CodeOfChaos.Parsers.sln
 
             - name: Build
-              run: dotnet build TEMPLATE.sln --configuration Release --no-restore
+              run: dotnet build CodeOfChaos.Parsers.sln --configuration Release --no-restore
             
             # Ensure that the tests must pass 
             # The job will fail automatically if any test fails because `dotnet test` exits with a non-zero code
             - name: Run tests - Extensions
               run: dotnet run -c Release --no-restore --no-build
-              working-directory: "tests/TEMPLATE"
+              working-directory: "tests/CodeOfChaos.Parsers.Csv"
 
             - name: Publish to NuGet
               env:
                   NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
               run: |
-                  dotnet nuget push src/TEMPLATE/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+                  dotnet nuget push src/CodeOfChaos.Parsers/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
