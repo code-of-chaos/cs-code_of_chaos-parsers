@@ -5,10 +5,31 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+
+        <!-- Main package name -->
+        <PackageId>CodeOfChaos.Parsers.Csv</PackageId>
+        <Version>2.0.0-preview.0</Version>
+        <Authors>Anna Sas</Authors>
+        <Description>A Library to parse csv files in a similar api to regular xml parsing</Description>
+        <PackageProjectUrl>https://github.com/code-of-chaos/cs-code_of_chaos-parsers</PackageProjectUrl>
+        <PackageTags>csv parsing</PackageTags>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <IncludeSymbols>true</IncludeSymbols>
+        <DebugType>embedded</DebugType>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIcon>icon.png</PackageIcon>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="CodeOfChaos.Extensions" Version="0.20.0-preview.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+        <None Include="README.md" Pack="true" PackagePath="" />
+        <None Include="../../assets/icon.png" Pack="true" PackagePath="" />
     </ItemGroup>
 
 </Project>
