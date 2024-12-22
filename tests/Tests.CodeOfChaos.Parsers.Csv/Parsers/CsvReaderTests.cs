@@ -16,7 +16,7 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
-        string csv = """
+        const string csv = """
             Name;Age
             John;30
             Jane;25
@@ -24,7 +24,7 @@ public class CsvReaderTests {
         var stringReader = new StringReader(csv);
 
         // Act
-        List<TestModelWithoutAttribute> result = parser.ToList<TestModelWithoutAttribute, StringReader>(stringReader);
+        List<TestModelWithoutAttribute> result = parser.ToList<TestModelWithoutAttribute>(stringReader);
 
         // Assert
         await Assert.That(result).IsNotEmpty()
@@ -43,7 +43,7 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
-        string csv = """
+        const string csv = """
             Name;Age
             John;30
             Jane;25
@@ -52,7 +52,7 @@ public class CsvReaderTests {
 
         // Act
         List<TestModelWithoutAttribute> result = [];
-        await foreach (TestModelWithoutAttribute data in parser.ToEnumerableAsync<TestModelWithoutAttribute, StringReader>(stringReader)) {
+        await foreach (TestModelWithoutAttribute data in parser.ToEnumerableAsync<TestModelWithoutAttribute>(stringReader)) {
             result.Add(data);
         }
 
@@ -74,7 +74,7 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
-        string csv = """
+        const string csv = """
             Name;Age
             John;30
             Jane;
@@ -82,7 +82,7 @@ public class CsvReaderTests {
         var stringReader = new StringReader(csv);
 
         // Act
-        List<TestModelWithoutAttribute> result = parser.ToList<TestModelWithoutAttribute, StringReader>(stringReader);
+        List<TestModelWithoutAttribute> result = parser.ToList<TestModelWithoutAttribute>(stringReader);
 
         // Assert
         
@@ -102,7 +102,7 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ",";
             cfg.IncludeHeader = true;
         });
-        string csv = """
+        const string csv = """
             Name,Age
             John,30
             Jane,25
@@ -110,7 +110,7 @@ public class CsvReaderTests {
         var stringReader = new StringReader(csv);
 
         // Act
-        List<TestModelWithoutAttribute> result = parser.ToList<TestModelWithoutAttribute, StringReader>(stringReader);
+        List<TestModelWithoutAttribute> result = parser.ToList<TestModelWithoutAttribute>(stringReader);
 
         // Assert
         await Assert.That(result).IsNotEmpty()
@@ -129,7 +129,7 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
-        string csv = """
+        const string csv = """
             Name;Age
             John;30
             Jane;25
@@ -137,16 +137,20 @@ public class CsvReaderTests {
         var stringReader = new StringReader(csv);
 
         // Act
-        List<TestModelWithoutAttribute> result = parser.ToList<TestModelWithoutAttribute, StringReader>(stringReader);
+        List<TestModelWithoutAttribute> result = parser.ToList<TestModelWithoutAttribute>(stringReader);
 
         // Assert
-        
         await Assert.That(result).IsNotEmpty()
             .And.HasCount().EqualTo(2);
         
         await Assert.That(result[0].Name).IsEqualTo("John")
             .And.IsTypeOf<string>();
         await Assert.That(result[0].Age).IsEqualTo(30)
+            .And.IsTypeOf<int>();
+        
+        await Assert.That(result[1].Name).IsEqualTo("Jane")
+            .And.IsTypeOf<string>();
+        await Assert.That(result[1].Age).IsEqualTo(25)
             .And.IsTypeOf<int>();
     }
     
@@ -179,7 +183,7 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
-        string path = "Data/TestData.csv";
+        const string path = "Data/TestData.csv";
 
         // Act
         List<TestModelWithoutAttribute> result = [];

@@ -2,6 +2,7 @@
 // Imports
 // ---------------------------------------------------------------------------------------------------------------------
 using CodeOfChaos.Parsers.Csv.Attributes;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -9,10 +10,14 @@ namespace CodeOfChaos.Parsers.Csv;
 // ---------------------------------------------------------------------------------------------------------------------
 // Code
 // ---------------------------------------------------------------------------------------------------------------------
+
+// ReSharper disable MemberCanBePrivate.Global
 /// <summary>
 ///     Provides functionality to parse CSV files into various collection types.
 /// </summary>
 public class CsvParser(CsvParserConfig config) : ICsvParser {
+    protected readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertyCache = new();
+    protected readonly ConcurrentDictionary<Type, string[]> HeaderCache = new();
 
     // -----------------------------------------------------------------------------------------------------------------
     // Constructors
@@ -34,45 +39,50 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         return new CsvParser(config);
     }
 
+    /// <summary>
+    /// Creates an instance of <see cref="CsvParser" /> using the default configuration.
+    /// </summary>
+    /// <returns>
+    /// A new instance of <see cref="CsvParser" /> initialized with the default settings, ready
+    /// to parse CSV data.
+    /// </returns>
+    public static CsvParser FromDefaultConfig() => new(new CsvParserConfig());
+
     // -----------------------------------------------------------------------------------------------------------------
     // Input Methods
     // -----------------------------------------------------------------------------------------------------------------
     #region ToEnumerable
     /// <inheritdoc />
-    public IEnumerable<T> ToEnumerable<T, TReader>(TReader reader)
-        where T : class, new()
-        where TReader : TextReader => FromTextReader<T, TReader>(reader);
+    public IEnumerable<T> ToEnumerable<T>(TextReader reader)
+        where T : class, new() => FromTextReader<T>(reader);
 
     /// <inheritdoc />
     public IEnumerable<T> ToEnumerable<T>(string filePath)
-        where T : class, new() => FromTextReader<T, StreamReader>(new StreamReader(filePath));
+        where T : class, new() => FromTextReader<T>(new StreamReader(filePath));
 
     /// <inheritdoc />
-    public IAsyncEnumerable<T> ToEnumerableAsync<T, TReader>(TReader reader, CancellationToken ct = default)
-        where T : class, new()
-        where TReader : TextReader => FromTextReaderAsync<T, TReader>(reader, ct);
+    public IAsyncEnumerable<T> ToEnumerableAsync<T>(TextReader reader, CancellationToken ct = default)
+        where T : class, new() => FromTextReaderAsync<T>(reader, ct);
 
     /// <inheritdoc />
     public IAsyncEnumerable<T> ToEnumerableAsync<T>(string filePath, CancellationToken ct = default)
-        where T : class, new() => FromTextReaderAsync<T, StreamReader>(new StreamReader(filePath), ct);
+        where T : class, new() => FromTextReaderAsync<T>(new StreamReader(filePath), ct);
     #endregion
     #region ToArray
     /// <inheritdoc />
-    public T[] ToArray<T, TReader>(TReader reader)
-        where T : class, new()
-        where TReader : TextReader => FromTextReader<T, TReader>(reader).ToArray();
+    public T[] ToArray<T>(TextReader reader)
+        where T : class, new() => FromTextReader<T>(reader).ToArray();
 
     /// <inheritdoc />
     public T[] ToArray<T>(string filePath)
-        where T : class, new() => FromTextReader<T, StreamReader>(new StreamReader(filePath)).ToArray();
+        where T : class, new() => FromTextReader<T>(new StreamReader(filePath)).ToArray();
 
     /// <inheritdoc />
-    public async ValueTask<T[]> ToArrayAsync<T, TReader>(TReader reader, CancellationToken ct = default)
-        where T : class, new()
-        where TReader : TextReader {
+    public async ValueTask<T[]> ToArrayAsync<T>(TextReader reader, CancellationToken ct = default)
+        where T : class, new() {
         var results = new List<T>(config.InitialCapacity);
 
-        await foreach (T item in FromTextReaderAsync<T, TReader>(reader, ct)) {
+        await foreach (T item in FromTextReaderAsync<T>(reader, ct)) {
             results.Add(item);
         }
 
@@ -85,7 +95,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         using var reader = new StreamReader(filePath);
         var results = new List<T>(config.InitialCapacity);
 
-        await foreach (T item in FromTextReaderAsync<T, StreamReader>(reader, ct)) {
+        await foreach (T item in FromTextReaderAsync<T>(reader, ct)) {
             results.Add(item);
         }
 
@@ -95,24 +105,22 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
     #endregion
     #region ToList
     /// <inheritdoc />
-    public List<T> ToList<T, TReader>(TReader reader)
-        where T : class, new()
-        where TReader : TextReader => FromTextReader<T, TReader>(reader).ToList();
+    public List<T> ToList<T>(TextReader reader)
+        where T : class, new() => FromTextReader<T>(reader).ToList();
 
     /// <inheritdoc />
     public List<T> ToList<T>(string filePath)
         where T : class, new() {
         var reader = new StreamReader(filePath);
-        return FromTextReader<T, StreamReader>(reader).ToList();
+        return FromTextReader<T>(reader).ToList();
     }
 
     /// <inheritdoc />
-    public async ValueTask<List<T>> ToListAsync<T, TReader>(TReader reader, CancellationToken ct = default)
-        where T : class, new()
-        where TReader : TextReader {
+    public async ValueTask<List<T>> ToListAsync<T>(TextReader reader, CancellationToken ct = default)
+        where T : class, new() {
         var results = new List<T>(config.InitialCapacity);
 
-        await foreach (T item in FromTextReaderAsync<T, TReader>(reader, ct)) {
+        await foreach (T item in FromTextReaderAsync<T>(reader, ct)) {
             results.Add(item);
         }
 
@@ -125,7 +133,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         using var reader = new StringReader(filePath);
         var results = new List<T>(config.InitialCapacity);
 
-        await foreach (T item in FromTextReaderAsync<T, StringReader>(reader, ct)) {
+        await foreach (T item in FromTextReaderAsync<T>(reader, ct)) {
             results.Add(item);
         }
 
@@ -135,16 +143,16 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
     #endregion
     #region ToDictionaryEnumerable
     /// <inheritdoc />
-    public IEnumerable<Dictionary<string, string?>> ToDictionaryEnumerable<TReader>(TReader reader)
-        where TReader : TextReader => FromTextReaderToDictionary(reader);
+    public IEnumerable<Dictionary<string, string?>> ToDictionaryEnumerable(TextReader reader)
+        => FromTextReaderToDictionary(reader);
 
     /// <inheritdoc />
     public IEnumerable<Dictionary<string, string?>> ToDictionaryEnumerable(string filePath)
         => FromTextReaderToDictionary(new StreamReader(filePath));
 
     /// <inheritdoc />
-    public IAsyncEnumerable<Dictionary<string, string?>> ToDictionaryEnumerableAsync<TReader>(TReader reader, CancellationToken ct = default)
-        where TReader : TextReader => FromTextReaderToDictionaryAsync(reader, ct);
+    public IAsyncEnumerable<Dictionary<string, string?>> ToDictionaryEnumerableAsync(TextReader reader, CancellationToken ct = default)
+        => FromTextReaderToDictionaryAsync(reader, ct);
 
     /// <inheritdoc />
     public IAsyncEnumerable<Dictionary<string, string?>> ToDictionaryEnumerableAsync(string filePath, CancellationToken ct = default)
@@ -152,15 +160,14 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
     #endregion
     #region ToDictionaryArray
     /// <inheritdoc />
-    public Dictionary<string, string?>[] ToDictionaryArray<TReader>(TReader reader)
-        where TReader : TextReader => FromTextReaderToDictionary(reader).ToArray();
+    public Dictionary<string, string?>[] ToDictionaryArray(TextReader reader)
+        => FromTextReaderToDictionary(reader).ToArray();
 
     /// <inheritdoc />
     public Dictionary<string, string?>[] ToDictionaryArray(string filePath) => FromTextReaderToDictionary(new StreamReader(filePath)).ToArray();
 
     /// <inheritdoc />
-    public async ValueTask<Dictionary<string, string?>[]> ToDictionaryArrayAsync<TReader>(TReader reader, CancellationToken ct = default)
-        where TReader : TextReader {
+    public async ValueTask<Dictionary<string, string?>[]> ToDictionaryArrayAsync(TextReader reader, CancellationToken ct = default) {
         var results = new List<Dictionary<string, string?>>(config.InitialCapacity);
 
         await foreach (Dictionary<string, string?> item in FromTextReaderToDictionaryAsync(reader, ct)) {
@@ -184,16 +191,15 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
     #endregion
     #region ToDictionaryList
     /// <inheritdoc />
-    public List<Dictionary<string, string?>> ToDictionaryList<TReader>(TReader reader)
-        where TReader : TextReader => FromTextReaderToDictionary(reader).ToList();
+    public List<Dictionary<string, string?>> ToDictionaryList(TextReader reader)
+        => FromTextReaderToDictionary(reader).ToList();
 
     /// <inheritdoc />
     public List<Dictionary<string, string?>> ToDictionaryList(string filePath)
         => FromTextReaderToDictionary(new StreamReader(filePath)).ToList();
 
     /// <inheritdoc />
-    public async ValueTask<List<Dictionary<string, string?>>> ToDictionaryListAsync<TReader>(TReader reader, CancellationToken ct = default)
-        where TReader : TextReader {
+    public async ValueTask<List<Dictionary<string, string?>>> ToDictionaryListAsync(TextReader reader, CancellationToken ct = default) {
         var results = new List<Dictionary<string, string?>>(config.InitialCapacity);
 
         await foreach (Dictionary<string, string?> item in FromTextReaderToDictionaryAsync(reader, ct)) {
@@ -236,16 +242,16 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
     }
 
     /// <inheritdoc />
-    public async ValueTask<string> ParseToStringAsync<T>(IEnumerable<T> data) {
+    public async ValueTask<string> ParseToStringAsync<T>(IEnumerable<T> data, CancellationToken ct = default) {
         await using var writer = new StringWriter();
-        await FromDataToTextWriterAsync(writer, data);
+        await FromDataToTextWriterAsync(writer, data, ct);
         return writer.ToString();
     }
 
     /// <inheritdoc />
-    public async ValueTask<string> ParseToStringAsync(IEnumerable<Dictionary<string, string?>> data) {
+    public async ValueTask<string> ParseToStringAsync(IEnumerable<Dictionary<string, string?>> data, CancellationToken ct = default) {
         await using var writer = new StringWriter();
-        await FromDictionaryToTextWriterAsync(writer, data);
+        await FromDictionaryToTextWriterAsync(writer, data, ct);
         return writer.ToString();
     }
     #endregion
@@ -263,42 +269,41 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
     }
 
     /// <inheritdoc />
-    public async ValueTask ParseToFileAsync<T>(string filePath, IEnumerable<T> data) {
+    public async ValueTask ParseToFileAsync<T>(string filePath, IEnumerable<T> data, CancellationToken ct = default) {
         await using var writer = new StreamWriter(filePath);
-        await FromDataToTextWriterAsync(writer, data);
+        await FromDataToTextWriterAsync(writer, data, ct);
     }
 
     /// <inheritdoc />
-    public async ValueTask ParseToFileAsync(string filePath, IEnumerable<Dictionary<string, string?>> data) {
+    public async ValueTask ParseToFileAsync(string filePath, IEnumerable<Dictionary<string, string?>> data, CancellationToken ct = default) {
         await using var writer = new StreamWriter(filePath);
-        await FromDictionaryToTextWriterAsync(writer, data);
+        await FromDictionaryToTextWriterAsync(writer, data, ct);
     }
     #endregion
     #region ParseToWriter
     /// <inheritdoc />
-    public void ParseToWriter<T, TWriter>(IEnumerable<T> data, TWriter writer)
-        where TWriter : TextWriter => FromDataToTextWriter(writer, data);
+    public void ParseToWriter<T>(IEnumerable<T> data, TextWriter writer)
+        => FromDataToTextWriter(writer, data);
 
     /// <inheritdoc />
-    public void ParseToWriter<TWriter>(IEnumerable<Dictionary<string, string?>> data, TWriter writer)
-        where TWriter : TextWriter => FromDictionaryToTextWriter(writer, data);
+    public void ParseToWriter(IEnumerable<Dictionary<string, string?>> data, TextWriter writer)
+        => FromDictionaryToTextWriter(writer, data);
 
     /// <inheritdoc />
-    public async ValueTask ParseToWriterAsync<T, TWriter>(IEnumerable<T> data, TWriter writer)
-        where TWriter : TextWriter => await FromDataToTextWriterAsync(writer, data);
+    public async ValueTask ParseToWriterAsync<T>(IEnumerable<T> data, TextWriter writer, CancellationToken ct = default)
+        => await FromDataToTextWriterAsync(writer, data, ct);
 
     /// <inheritdoc />
-    public async ValueTask ParseToWriterAsync<TWriter>(IEnumerable<Dictionary<string, string?>> data, TWriter writer)
-        where TWriter : TextWriter => await FromDictionaryToTextWriterAsync(writer, data);
+    public async ValueTask ParseToWriterAsync(IEnumerable<Dictionary<string, string?>> data, TextWriter writer, CancellationToken ct = default)
+        => await FromDictionaryToTextWriterAsync(writer, data, ct);
     #endregion
 
     // -----------------------------------------------------------------------------------------------------------------
     // Actual Parsers
     // -----------------------------------------------------------------------------------------------------------------
     #region Generic Type Parsing
-    private IEnumerable<T> FromTextReader<T, TReader>(TReader reader)
-        where T : class, new()
-        where TReader : TextReader {
+    private IEnumerable<T> FromTextReader<T>(TextReader reader)
+        where T : class, new() {
         string[] headerColumns = [];
         int batchSize = config.BatchSize;
         var batch = new List<T>(config.BatchSize);
@@ -325,9 +330,8 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         }
     }
 
-    private async IAsyncEnumerable<T> FromTextReaderAsync<T, TReader>(TReader reader, [EnumeratorCancellation] CancellationToken ct = default)
-        where T : class, new()
-        where TReader : TextReader {
+    private async IAsyncEnumerable<T> FromTextReaderAsync<T>(TextReader reader, [EnumeratorCancellation] CancellationToken ct = default)
+        where T : class, new() {
         string[] headerColumns = [];
         int batchSize = config.BatchSize;
         var batch = new List<T>(config.BatchSize);
@@ -351,14 +355,15 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
             }
 
             batch.Clear();
+            ct.ThrowIfCancellationRequested(); // After a batch is done, check if the cancellation token was requested
             if (line == null) break;
         }
     }
 
     private void SetPropertyFromCsvColumn<T>(T? value, string[] headerColumns, string[] values) where T : class, new() {
         if (value is null) return;
-
-        foreach (PropertyInfo prop in value.GetType().GetProperties()) {
+        
+        foreach (PropertyInfo prop in GetCsvProperties<T>()) {
             int columnIndex = Attribute.GetCustomAttribute(prop, typeof(CsvColumnAttribute)) is CsvColumnAttribute attribute
                 ? Array.IndexOf(headerColumns, attribute.Name)
                 : Array.IndexOf(headerColumns, prop.Name);
@@ -378,8 +383,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
     }
     #endregion
     #region Dictionary Parsing
-    private IEnumerable<Dictionary<string, string?>> FromTextReaderToDictionary<TReader>(TReader reader)
-        where TReader : TextReader {
+    private IEnumerable<Dictionary<string, string?>> FromTextReaderToDictionary(TextReader reader) {
         string[] headerColumns = [];
         int batchSize = config.BatchSize;
         var batch = new List<Dictionary<string, string?>>();
@@ -409,8 +413,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         }
     }
 
-    private async IAsyncEnumerable<Dictionary<string, string?>> FromTextReaderToDictionaryAsync<TReader>(TReader reader, [EnumeratorCancellation] CancellationToken ct = default)
-        where TReader : TextReader {
+    private async IAsyncEnumerable<Dictionary<string, string?>> FromTextReaderToDictionaryAsync(TextReader reader, [EnumeratorCancellation] CancellationToken ct = default) {
         string[] headerColumns = [];
         int batchSize = config.BatchSize;
         var batch = new List<Dictionary<string, string?>>();
@@ -436,20 +439,17 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
             }
 
             batch.Clear();
+            ct.ThrowIfCancellationRequested(); // After a batch is done, check if the cancellation token was requested
             if (line == null) break;
         }
     }
     #endregion
 
     #region Generic Type Writer
-    private void FromDataToTextWriter<T, TWriter>(TWriter writer, IEnumerable<T> data)
-        where TWriter : TextWriter {
+    private void FromDataToTextWriter<T>(TextWriter writer, IEnumerable<T> data) {
         // Write header row
-        T[] array = data as T[] ?? data.ToArray();
-        PropertyInfo[] propertyInfos = GetCsvProperties(array.FirstOrDefault());// Dirty but it will work
-
         if (config.IncludeHeader) {
-            string[] headers = GetCsvHeaders(propertyInfos).ToArray();
+            string[] headers = GetCsvHeaders<T>().ToArray();
             for (int i = 0; i < headers.Length; i++) {
                 writer.Write(headers[i]);
                 if (i < headers.Length - 1) writer.Write(config.ColumnSplit);
@@ -457,10 +457,9 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
 
             writer.Write(Environment.NewLine);
         }
-
         // Write data rows
-        foreach (T? obj in array) {
-            string[] values = GetCsvValues(obj, propertyInfos).ToArray();
+        foreach (T? obj in data) {
+            string[] values = GetCsvValues(obj).ToArray();
             for (int i = 0; i < values.Length; i++) {
                 writer.Write(values[i]);
                 if (i < values.Length - 1) writer.Write(config.ColumnSplit);
@@ -470,67 +469,33 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         }
     }
 
-    private async Task FromDataToTextWriterAsync<T, TWriter>(TWriter writer, IEnumerable<T> data)
-        where TWriter : TextWriter {
+    private async Task FromDataToTextWriterAsync<T>(TextWriter writer, IEnumerable<T> data, CancellationToken ct = default) {
         // Write header row
-        T[] array = data as T[] ?? data.ToArray();
-        PropertyInfo[] propertyInfos = GetCsvProperties(array.FirstOrDefault());
-
         if (config.IncludeHeader) {
-            string[] headers = GetCsvHeaders(propertyInfos).ToArray();
+            string[] headers = GetCsvHeaders<T>().ToArray();
             for (int i = 0; i < headers.Length; i++) {
                 await writer.WriteAsync(headers[i]);
                 if (i < headers.Length - 1) await writer.WriteAsync(config.ColumnSplit);
             }
 
             await writer.WriteAsync(Environment.NewLine);
+            ct.ThrowIfCancellationRequested();
         }
-
         // Write data rows
-        foreach (T? obj in array) {
-            string[] values = GetCsvValues(obj, propertyInfos).ToArray();
+        foreach (T? obj in data) {
+            string[] values = GetCsvValues(obj).ToArray();
             for (int i = 0; i < values.Length; i++) {
                 await writer.WriteAsync(values[i]);
                 if (i < values.Length - 1) await writer.WriteAsync(config.ColumnSplit);
             }
 
             await writer.WriteAsync(Environment.NewLine);
+            ct.ThrowIfCancellationRequested();
         }
-    }
-
-
-    private static PropertyInfo[] GetCsvProperties<T>(T? obj) => obj?
-            .GetType()
-            .GetProperties()
-            .ToArray()
-        ?? [];
-
-    private IEnumerable<string> GetCsvHeaders(PropertyInfo[] propertyInfos) {
-        return propertyInfos
-            .Select(p => {
-                if (p.GetCustomAttribute<CsvColumnAttribute>() is not {} attribute)
-                    return config.UseLowerCaseHeaders ? p.Name.ToLowerInvariant() : p.Name;
-
-                return config.UseLowerCaseHeaders
-                    ? attribute.NameLowerInvariant
-                    : attribute.Name;
-            });
-    }
-
-    private static IEnumerable<string> GetCsvValues<T>(T? obj, PropertyInfo[] propertyInfos) {
-        if (obj is null) return [];
-
-        PropertyInfo[] properties = propertyInfos.Length != 0
-            ? propertyInfos
-            : obj.GetType().GetProperties();
-
-        return properties
-            .Select(p => p.GetValue(obj)?.ToString() ?? string.Empty);
     }
     #endregion
     #region Dictionary Writer
-    private void FromDictionaryToTextWriter<TWriter>(TWriter writer, IEnumerable<Dictionary<string, string?>> data)
-        where TWriter : TextWriter {
+    private void FromDictionaryToTextWriter(TextWriter writer, IEnumerable<Dictionary<string, string?>> data) {
         IDictionary<string, string?>[] records = data as IDictionary<string, string?>[] ?? data.ToArray<IDictionary<string, string?>>();
         if (records.Length == 0) return;
 
@@ -548,8 +513,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         }
     }
 
-    private async Task FromDictionaryToTextWriterAsync<TWriter>(TWriter writer, IEnumerable<Dictionary<string, string?>> data)
-        where TWriter : TextWriter {
+    private async Task FromDictionaryToTextWriterAsync(TextWriter writer, IEnumerable<Dictionary<string, string?>> data, CancellationToken ct = default) {
         IDictionary<string, string?>[] records = data as IDictionary<string, string?>[] ?? data.ToArray<IDictionary<string, string?>>();
         if (records.Length == 0) return;
 
@@ -558,13 +522,60 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
             IDictionary<string, string?> firstDictionary = records.First();
             IEnumerable<string> headers = firstDictionary.Keys;
             await writer.WriteLineAsync(string.Join(config.ColumnSplit, headers));
+            
+            ct.ThrowIfCancellationRequested();
         }
 
         // Write data rows
         foreach (IDictionary<string, string?> dictionary in records) {
             IEnumerable<string> values = dictionary.Values.Select(value => value?.ToString() ?? string.Empty);
             await writer.WriteLineAsync(string.Join(config.ColumnSplit, values));
+            
+            ct.ThrowIfCancellationRequested();
         }
     }
     #endregion
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Methods
+    // -----------------------------------------------------------------------------------------------------------------
+    /// <inheritdoc />
+    public void ClearCaches() {
+        PropertyCache.Clear();
+        HeaderCache.Clear();
+    }
+    
+    protected PropertyInfo[] GetCsvProperties<T>() {
+        Type type = typeof(T);
+        if (PropertyCache.TryGetValue(type, out PropertyInfo[]? propertyInfos)) return propertyInfos;
+        PropertyInfo[] propertyInfosArray = type.GetProperties().ToArray();
+        PropertyCache[type] = propertyInfosArray;
+        return propertyInfosArray;
+    }
+
+    protected string[] GetCsvHeaders<T>() {
+        Type type = typeof(T);
+        if (HeaderCache.TryGetValue(type, out string[]? headers)) return headers;
+        
+        string[] headersArray =  GetCsvProperties<T>()
+            .Select(p => {
+                if (p.GetCustomAttribute<CsvColumnAttribute>() is not {} attribute)
+                    return config.UseLowerCaseHeaders ? p.Name.ToLowerInvariant() : p.Name;
+
+                return config.UseLowerCaseHeaders
+                    ? attribute.NameLowerInvariant
+                    : attribute.Name;
+            })
+            .ToArray();
+        
+        HeaderCache[type] = headersArray;
+        return headersArray;
+    }
+
+    protected IEnumerable<string> GetCsvValues<T>(T? obj) {
+        if (obj is null) return [];
+        
+        return GetCsvProperties<T>()
+            .Select(p => p.GetValue(obj)?.ToString() ?? string.Empty);
+    }
 }
