@@ -16,12 +16,13 @@ namespace CodeOfChaos.Parsers.Csv;
 ///     Provides functionality to parse CSV files into various collection types.
 /// </summary>
 public class CsvParser(CsvParserConfig config) : ICsvParser {
-    protected readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertyCache = new();
     protected readonly ConcurrentDictionary<Type, string[]> HeaderCache = new();
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // Constructors
-    // -----------------------------------------------------------------------------------------------------------------
+    protected readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertyCache = new();
+    /// <inheritdoc />
+    public void ClearCaches() {
+        PropertyCache.Clear();
+        HeaderCache.Clear();
+    }
     /// <summary>
     ///     Creates an instance of <see cref="CsvParser" /> using the specified configuration action.
     /// </summary>
@@ -38,15 +39,50 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         configAction(config);
         return new CsvParser(config);
     }
-
     /// <summary>
-    /// Creates an instance of <see cref="CsvParser" /> using the default configuration.
+    ///     Creates an instance of <see cref="CsvParser" /> using the default configuration.
     /// </summary>
     /// <returns>
-    /// A new instance of <see cref="CsvParser" /> initialized with the default settings, ready
-    /// to parse CSV data.
+    ///     A new instance of <see cref="CsvParser" /> initialized with the default settings, ready
+    ///     to parse CSV data.
     /// </returns>
     public static CsvParser FromDefaultConfig() => new(new CsvParserConfig());
+    protected PropertyInfo[] GetCsvProperties<T>() {
+        Type type = typeof(T);
+        if (PropertyCache.TryGetValue(type, out PropertyInfo[]? propertyInfos)) return propertyInfos;
+
+        PropertyInfo[] propertyInfosArray = type.GetProperties().ToArray();
+        PropertyCache[type] = propertyInfosArray;
+        return propertyInfosArray;
+    }
+    protected string[] GetCsvHeaders<T>() {
+        Type type = typeof(T);
+        if (HeaderCache.TryGetValue(type, out string[]? headers)) return headers;
+
+        string[] headersArray = GetCsvProperties<T>()
+            .Select(p => {
+                if (p.GetCustomAttribute<CsvColumnAttribute>() is not {} attribute)
+                    return config.UseLowerCaseHeaders ? p.Name.ToLowerInvariant() : p.Name;
+
+                return config.UseLowerCaseHeaders
+                    ? attribute.NameLowerInvariant
+                    : attribute.Name;
+            })
+            .ToArray();
+
+        HeaderCache[type] = headersArray;
+        return headersArray;
+    }
+    protected IEnumerable<string> GetCsvValues<T>(T? obj) {
+        if (obj is null) return [];
+
+        return GetCsvProperties<T>()
+            .Select(p => p.GetValue(obj)?.ToString() ?? string.Empty);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Constructors
+    // -----------------------------------------------------------------------------------------------------------------
 
     // -----------------------------------------------------------------------------------------------------------------
     // Input Methods
@@ -173,6 +209,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         await foreach (Dictionary<string, string?> item in FromTextReaderToDictionaryAsync(reader, ct)) {
             results.Add(item);
         }
+
         return results.ToArray();
     }
 
@@ -184,7 +221,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         await foreach (Dictionary<string, string?> item in FromTextReaderToDictionaryAsync(reader, ct)) {
             results.Add(item);
         }
-        
+
         results.TrimExcess();
         return results.ToArray();
     }
@@ -205,7 +242,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         await foreach (Dictionary<string, string?> item in FromTextReaderToDictionaryAsync(reader, ct)) {
             results.Add(item);
         }
-        
+
         results.TrimExcess();
         return results;
     }
@@ -217,7 +254,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         await foreach (Dictionary<string, string?> item in FromTextReaderToDictionaryAsync(reader, ct)) {
             results.Add(item);
         }
-        
+
         results.TrimExcess();
         return results;
     }
@@ -355,14 +392,14 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
             }
 
             batch.Clear();
-            ct.ThrowIfCancellationRequested(); // After a batch is done, check if the cancellation token was requested
+            ct.ThrowIfCancellationRequested();// After a batch is done, check if the cancellation token was requested
             if (line == null) break;
         }
     }
 
     private void SetPropertyFromCsvColumn<T>(T? value, string[] headerColumns, string[] values) where T : class, new() {
         if (value is null) return;
-        
+
         foreach (PropertyInfo prop in GetCsvProperties<T>()) {
             int columnIndex = Attribute.GetCustomAttribute(prop, typeof(CsvColumnAttribute)) is CsvColumnAttribute attribute
                 ? Array.IndexOf(headerColumns, attribute.Name)
@@ -401,6 +438,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
                     string value = values[j];
                     dict[headerColumns[j]] = value.IsNotNullOrEmpty() ? value : null;
                 }
+
                 batch.Add(dict);
             }
 
@@ -431,6 +469,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
                     string value = values[j];
                     dict[headerColumns[j]] = value.IsNotNullOrEmpty() ? value : null;
                 }
+
                 batch.Add(dict);
             }
 
@@ -439,12 +478,11 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
             }
 
             batch.Clear();
-            ct.ThrowIfCancellationRequested(); // After a batch is done, check if the cancellation token was requested
+            ct.ThrowIfCancellationRequested();// After a batch is done, check if the cancellation token was requested
             if (line == null) break;
         }
     }
     #endregion
-
     #region Generic Type Writer
     private void FromDataToTextWriter<T>(TextWriter writer, IEnumerable<T> data) {
         // Write header row
@@ -457,6 +495,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
 
             writer.Write(Environment.NewLine);
         }
+
         // Write data rows
         foreach (T? obj in data) {
             string[] values = GetCsvValues(obj).ToArray();
@@ -481,6 +520,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
             await writer.WriteAsync(Environment.NewLine);
             ct.ThrowIfCancellationRequested();
         }
+
         // Write data rows
         foreach (T? obj in data) {
             string[] values = GetCsvValues(obj).ToArray();
@@ -522,7 +562,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
             IDictionary<string, string?> firstDictionary = records.First();
             IEnumerable<string> headers = firstDictionary.Keys;
             await writer.WriteLineAsync(string.Join(config.ColumnSplit, headers));
-            
+
             ct.ThrowIfCancellationRequested();
         }
 
@@ -530,7 +570,7 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
         foreach (IDictionary<string, string?> dictionary in records) {
             IEnumerable<string> values = dictionary.Values.Select(value => value?.ToString() ?? string.Empty);
             await writer.WriteLineAsync(string.Join(config.ColumnSplit, values));
-            
+
             ct.ThrowIfCancellationRequested();
         }
     }
@@ -539,43 +579,4 @@ public class CsvParser(CsvParserConfig config) : ICsvParser {
     // -----------------------------------------------------------------------------------------------------------------
     // Methods
     // -----------------------------------------------------------------------------------------------------------------
-    /// <inheritdoc />
-    public void ClearCaches() {
-        PropertyCache.Clear();
-        HeaderCache.Clear();
-    }
-    
-    protected PropertyInfo[] GetCsvProperties<T>() {
-        Type type = typeof(T);
-        if (PropertyCache.TryGetValue(type, out PropertyInfo[]? propertyInfos)) return propertyInfos;
-        PropertyInfo[] propertyInfosArray = type.GetProperties().ToArray();
-        PropertyCache[type] = propertyInfosArray;
-        return propertyInfosArray;
-    }
-
-    protected string[] GetCsvHeaders<T>() {
-        Type type = typeof(T);
-        if (HeaderCache.TryGetValue(type, out string[]? headers)) return headers;
-        
-        string[] headersArray =  GetCsvProperties<T>()
-            .Select(p => {
-                if (p.GetCustomAttribute<CsvColumnAttribute>() is not {} attribute)
-                    return config.UseLowerCaseHeaders ? p.Name.ToLowerInvariant() : p.Name;
-
-                return config.UseLowerCaseHeaders
-                    ? attribute.NameLowerInvariant
-                    : attribute.Name;
-            })
-            .ToArray();
-        
-        HeaderCache[type] = headersArray;
-        return headersArray;
-    }
-
-    protected IEnumerable<string> GetCsvValues<T>(T? obj) {
-        if (obj is null) return [];
-        
-        return GetCsvProperties<T>()
-            .Select(p => p.GetValue(obj)?.ToString() ?? string.Empty);
-    }
 }

@@ -6,10 +6,10 @@ namespace CodeOfChaos.Parsers.Csv;
 // Code
 // ---------------------------------------------------------------------------------------------------------------------
 public class CsvParserConfig {
+    public int BatchSize = 100;
     public string ColumnSplit = ",";
     public bool IncludeHeader = true;
+    public int InitialCapacity = 1000;
     public bool LogErrors = false;
     public bool UseLowerCaseHeaders = false;
-    public int BatchSize = 100;
-    public int InitialCapacity = 1000;
 }

@@ -22,6 +22,7 @@ public class DictionaryCsvParserTest {
         1;John
         2;Jane
         """);
+
         var expected = new List<Dictionary<string, string?>> {
             new() { { "id", "1" }, { "name", "John" } },
             new() { { "id", "2" }, { "name", "Jane" } }
@@ -44,6 +45,7 @@ public class DictionaryCsvParserTest {
             1;John
             2;Jane
             """;
+
         var stringReader = new StringReader(data);
         var expected = new List<Dictionary<string, string?>> {
             new() { { "id", "1" }, { "name", "John" } },
@@ -67,11 +69,12 @@ public class DictionaryCsvParserTest {
         1;John
         2;Jane
         """);
+
         var expected = new List<Dictionary<string, string?>> {
             new() { { "id", "1" }, { "name", "John" } },
             new() { { "id", "2" }, { "name", "Jane" } }
         };
-        
+
         // Act
         IAsyncEnumerable<Dictionary<string, string?>> result = parser.ToDictionaryEnumerableAsync(filePath);
 
@@ -80,7 +83,7 @@ public class DictionaryCsvParserTest {
         await foreach (Dictionary<string, string?> dict in result) {
             actual.Add(dict);
         }
-        
+
         await Assert.That(actual).IsEquivalentTo(expected);
     }
 
@@ -93,6 +96,7 @@ public class DictionaryCsvParserTest {
             1;John
             2;Jane
             """;
+
         var reader = new StringReader(data);
         var expected = new List<Dictionary<string, string?>> {
             new() { { "id", "1" }, { "name", "John" } },
@@ -110,7 +114,7 @@ public class DictionaryCsvParserTest {
 
         await Assert.That(actual).IsEquivalentTo(expected);
     }
-    
+
     [Test]
     public async Task WriteToString_ShouldReturnCorrectCsv() {
         // Arrange
@@ -129,7 +133,7 @@ public class DictionaryCsvParserTest {
             1;John
             2;Jane
             """;
-        
+
         await Assert.That(result.Trim()).IsEquivalentTo(expected);
     }
 
@@ -151,7 +155,7 @@ public class DictionaryCsvParserTest {
             1;John
             2;Jane
             """;
-        
+
         await Assert.That(result.Trim()).IsEquivalentTo(expected);
     }
 
@@ -176,7 +180,7 @@ public class DictionaryCsvParserTest {
                 1;John
                 2;Jane
                 """;
-            
+
             await Assert.That(result.Trim()).IsEquivalentTo(expected);
         }
         finally {
@@ -208,7 +212,7 @@ public class DictionaryCsvParserTest {
                 1;John
                 2;Jane
                 """;
-            
+
             await Assert.That(result.Trim()).IsEquivalentTo(expected);
         }
         finally {

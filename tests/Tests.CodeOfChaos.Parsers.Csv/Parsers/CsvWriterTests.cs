@@ -47,7 +47,7 @@ public class CsvWriterTests {
             config.ColumnSplit = ";";
             config.UseLowerCaseHeaders = true;
         });
-        
+
         const string expectedOutput = """
             name;age
             John;30
@@ -63,7 +63,7 @@ public class CsvWriterTests {
         await Assert.That(csvContent.Trim()).IsEqualTo(expectedOutput);
     }
     #endregion
-    
+
     #region Class Without Attribute
     [Test]
     public async Task CsvWriter_WriteToCsv_ShouldGenerateExpectedOutput_ClassWithoutAttributes() {
@@ -99,11 +99,11 @@ public class CsvWriterTests {
             new() { Name = "Jane", Age = 25 }
         ];
 
-        var csvWriter = CsvParser.FromConfig(config => {
+        CsvParser? csvWriter = CsvParser.FromConfig(config => {
             config.ColumnSplit = ";";
             config.UseLowerCaseHeaders = true;
         });
-        
+
         const string expectedOutput = """
             name;age
             John;30
@@ -117,7 +117,7 @@ public class CsvWriterTests {
         await Assert.That(csvContent.Trim()).IsEqualTo(expectedOutput);
     }
     #endregion
-    
+
     #region Class With Attribute
     [Test]
     public async Task CsvWriter_WriteToCsv_ShouldGenerateExpectedOutput_Class() {
@@ -131,7 +131,7 @@ public class CsvWriterTests {
             config.ColumnSplit = ";";
             config.UseLowerCaseHeaders = true;
         });
-        
+
         const string expectedOutput = """
             name;age
             John;30
@@ -153,11 +153,11 @@ public class CsvWriterTests {
             new() { UserName = "Jane", UserAge = 25 }
         ];
 
-        var csvWriter = CsvParser.FromConfig(config => {
+        CsvParser? csvWriter = CsvParser.FromConfig(config => {
             config.ColumnSplit = ";";
             config.UseLowerCaseHeaders = true;
         });
-        
+
         const string expectedOutput = """
             name;age
             John;30

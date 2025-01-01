@@ -1,13 +1,17 @@
 # CodeOfChaos.Parsers.Csv
 
-`CodeOfChaos.Parsers.Csv` is a lightweight library for parsing CSV files in .NET with an API inspired by conventional XML parsing. It supports handling CSV data in multiple formats such as objects, dictionaries, and enumerable collections, with both synchronous and asynchronous processing capabilities.
+`CodeOfChaos.Parsers.Csv` is a lightweight library for parsing CSV files in .NET with an API inspired by conventional
+XML parsing. It supports handling CSV data in multiple formats such as objects, dictionaries, and enumerable
+collections, with both synchronous and asynchronous processing capabilities.
 
 ---
 
 ## Features
 
 ### CSV Parsing
+
 Transform CSV content into multiple output formats:
+
 - **Object Mapping** – Convert CSV rows directly into objects.
 - **Dynamic Parsing** – Parse CSV data into dictionaries for flexible usage.
 - **Enumerable Support** – Process rows in batches or streams to handle large files efficiently.
@@ -16,14 +20,18 @@ Transform CSV content into multiple output formats:
 ---
 
 ### Writing CSV
+
 Create CSV files or strings from .NET objects:
+
 - Write objects directly to CSV, with easy-to-use serialization.
 - Support for both synchronous and asynchronous writing.
 
 ---
 
 ### Configuration Options
+
 Customize CSV parsing and writing:
+
 - **Delimiters** – Support different separators like `,`, `;`, or custom characters.
 - **Header Handling** – Include or exclude headers.
 - **Error Logging** – Log and handle errors gracefully.
@@ -32,7 +40,9 @@ Customize CSV parsing and writing:
 ---
 
 ### Attribute-Based Column Mapping
+
 Map CSV columns explicitly to object properties using attributes:
+
 - `[CsvColumn("ColumnName")]` maps specific CSV headers to class properties.
 - Useful for handling CSVs with non-standard or verbose field names.
 
@@ -43,6 +53,7 @@ Map CSV columns explicitly to object properties using attributes:
 This library targets `.NET 9.0` and requires C# 13.0. Ensure your project meets these requirements before using.
 
 Add the dependency to your project via NuGet:
+
 ```bash
 dotnet add package CodeOfChaos.Parsers.Csv --version 2.0.0-preview.0
 ```
@@ -54,6 +65,7 @@ dotnet add package CodeOfChaos.Parsers.Csv --version 2.0.0-preview.0
 Here’s how you can leverage the `CodeOfChaos.Parsers.Csv` library:
 
 ### Configuring the Parser
+
 You can create and configure a `CsvParser` instance using the `CsvParser.FromConfig` method. For example:
 
 ```csharp
@@ -67,6 +79,7 @@ var parser = CsvParser.FromConfig(cfg => {
 ---
 
 ### Parsing CSV to Objects
+
 ```csharp
 using CodeOfChaos.Parsers.Csv;
 
@@ -86,6 +99,7 @@ foreach (var person in people) {
 ---
 
 ### Parsing CSV to Dictionary
+
 If you need more dynamic handling and don't want to use object mapping, you can parse CSV data into a dictionary:
 
 ```csharp
@@ -102,6 +116,7 @@ foreach (var row in rows) {
 ---
 
 ### Handling Large Files with Enumeration
+
 For large files, you can use `ToEnumerable` for lazy loading and processing of rows:
 
 ```csharp
@@ -114,6 +129,7 @@ await foreach (var person in parser.ToEnumerableAsync<Person>("path/to/large-fil
 ---
 
 ### Writing Objects to CSV
+
 Write a collection of objects back to a CSV file:
 
 ```csharp
@@ -131,6 +147,7 @@ parser.ParseToFile("output.csv", people);
 ---
 
 ### Using Attributes for Column Mapping
+
 Use the `[CsvColumn]` attribute to map CSV columns to object properties:
 
 ```csharp
@@ -161,4 +178,5 @@ foreach (var user in users) {
 
 ## Contributing
 
-Feel free to fork and contribute to the project by submitting pull requests. When contributing, ensure your changes align with the project’s coding standards.
+Feel free to fork and contribute to the project by submitting pull requests. When contributing, ensure your changes
+align with the project’s coding standards.

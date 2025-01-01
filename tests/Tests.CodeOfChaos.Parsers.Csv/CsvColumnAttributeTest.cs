@@ -35,11 +35,11 @@ public class CsvColumnAttributeTests {
     [Test]
     public void CsvColumnAttribute_ConstructorShouldThrowNullReferenceException_WhenNameIsNull() {
         // Act & Assert
-        #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+        #pragma warning disable CS8625// Cannot convert null literal to non-nullable reference type.
         Assert.Throws<NullReferenceException>(() => {
             _ = new CsvColumnAttribute(null);
         });
-        #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        #pragma warning restore CS8625// Cannot convert null literal to non-nullable reference type.
     }
 
     [Test]

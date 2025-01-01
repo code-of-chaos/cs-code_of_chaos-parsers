@@ -4,7 +4,6 @@
 using CodeOfChaos.Parsers.Csv;
 
 namespace Tests.CodeOfChaos.Parsers.Csv.Parsers;
-
 // ---------------------------------------------------------------------------------------------------------------------
 // Code
 // ---------------------------------------------------------------------------------------------------------------------
@@ -16,11 +15,13 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
+
         const string csv = """
             Name;Age
             John;30
             Jane;25
             """;
+
         var stringReader = new StringReader(csv);
 
         // Act
@@ -29,7 +30,7 @@ public class CsvReaderTests {
         // Assert
         await Assert.That(result).IsNotEmpty()
             .And.HasCount().EqualTo(2);
-        
+
         await Assert.That(result[0].Name).IsEqualTo("John");
         await Assert.That(result[0].Age).IsEqualTo(30);
         await Assert.That(result[1].Name).IsEqualTo("Jane");
@@ -43,11 +44,13 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
+
         const string csv = """
             Name;Age
             John;30
             Jane;25
             """;
+
         var stringReader = new StringReader(csv);
 
         // Act
@@ -57,10 +60,10 @@ public class CsvReaderTests {
         }
 
         // Assert
-        
+
         await Assert.That(result).IsNotEmpty()
             .And.HasCount().EqualTo(2);
-        
+
         await Assert.That(result[0].Name).IsEqualTo("John");
         await Assert.That(result[0].Age).IsEqualTo(30);
         await Assert.That(result[1].Name).IsEqualTo("Jane");
@@ -74,21 +77,23 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
+
         const string csv = """
             Name;Age
             John;30
             Jane;
             """;
+
         var stringReader = new StringReader(csv);
 
         // Act
         List<TestModelWithoutAttribute> result = parser.ToList<TestModelWithoutAttribute>(stringReader);
 
         // Assert
-        
+
         await Assert.That(result).IsNotEmpty()
             .And.HasCount().EqualTo(2);
-        
+
         await Assert.That(result[0].Name).IsEqualTo("John");
         await Assert.That(result[0].Age).IsEqualTo(30);
         await Assert.That(result[1].Name).IsEqualTo("Jane");
@@ -102,11 +107,13 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ",";
             cfg.IncludeHeader = true;
         });
+
         const string csv = """
             Name,Age
             John,30
             Jane,25
             """;
+
         var stringReader = new StringReader(csv);
 
         // Act
@@ -115,7 +122,7 @@ public class CsvReaderTests {
         // Assert
         await Assert.That(result).IsNotEmpty()
             .And.HasCount().EqualTo(2);
-        
+
         await Assert.That(result[0].Name).IsEqualTo("John");
         await Assert.That(result[0].Age).IsEqualTo(30);
         await Assert.That(result[1].Name).IsEqualTo("Jane");
@@ -129,11 +136,13 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
+
         const string csv = """
             Name;Age
             John;30
             Jane;25
             """;
+
         var stringReader = new StringReader(csv);
 
         // Act
@@ -142,18 +151,20 @@ public class CsvReaderTests {
         // Assert
         await Assert.That(result).IsNotEmpty()
             .And.HasCount().EqualTo(2);
-        
+
         await Assert.That(result[0].Name).IsEqualTo("John")
             .And.IsTypeOf<string>();
+
         await Assert.That(result[0].Age).IsEqualTo(30)
             .And.IsTypeOf<int>();
-        
+
         await Assert.That(result[1].Name).IsEqualTo("Jane")
             .And.IsTypeOf<string>();
+
         await Assert.That(result[1].Age).IsEqualTo(25)
             .And.IsTypeOf<int>();
     }
-    
+
     [Test]
     public async Task ReadFromCsv_ShouldReadFileCorrectly() {
         // Arrange
@@ -161,6 +172,7 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
+
         const string path = "Data/TestData.csv";
 
         // Act
@@ -169,13 +181,13 @@ public class CsvReaderTests {
         // Assert
         await Assert.That(result).IsNotEmpty()
             .And.HasCount().EqualTo(2);
-        
+
         await Assert.That(result[0].Name).IsEqualTo("John");
         await Assert.That(result[0].Age).IsEqualTo(30);
         await Assert.That(result[1].Name).IsEqualTo("Jane");
         await Assert.That(result[1].Age).IsEqualTo(25);
     }
-    
+
     [Test]
     public async Task ReadFromCsv_ShouldReadFileCorrectlyAsync() {
         // Arrange
@@ -183,6 +195,7 @@ public class CsvReaderTests {
             cfg.ColumnSplit = ";";
             cfg.IncludeHeader = true;
         });
+
         const string path = "Data/TestData.csv";
 
         // Act
@@ -194,7 +207,7 @@ public class CsvReaderTests {
         // Assert
         await Assert.That(result).IsNotEmpty()
             .And.HasCount().EqualTo(2);
-        
+
         await Assert.That(result[0].Name).IsEqualTo("John");
         await Assert.That(result[0].Age).IsEqualTo(30);
         await Assert.That(result[1].Name).IsEqualTo("Jane");
