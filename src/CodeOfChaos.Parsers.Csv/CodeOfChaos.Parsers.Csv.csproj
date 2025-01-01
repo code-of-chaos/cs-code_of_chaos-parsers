@@ -23,7 +23,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CodeOfChaos.Extensions" Version="0.27.1"/>
+        <PackageReference Include="CodeOfChaos.Extensions" Version="0.28.2" />
     </ItemGroup>
 
     <ItemGroup>

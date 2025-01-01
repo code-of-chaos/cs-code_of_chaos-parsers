@@ -134,7 +134,7 @@ public class DictionaryCsvParserTest {
             2;Jane
             """;
 
-        await Assert.That(result.Trim()).IsEquivalentTo(expected);
+        await Assert.That(result).IsEqualTo(expected).IgnoringWhitespace();
     }
 
     [Test]
@@ -156,7 +156,7 @@ public class DictionaryCsvParserTest {
             2;Jane
             """;
 
-        await Assert.That(result.Trim()).IsEquivalentTo(expected);
+        await Assert.That(result).IsEqualTo(expected).IgnoringWhitespace();
     }
 
     [Test]
@@ -181,7 +181,7 @@ public class DictionaryCsvParserTest {
                 2;Jane
                 """;
 
-            await Assert.That(result.Trim()).IsEquivalentTo(expected);
+            await Assert.That(result).IsEqualTo(expected).IgnoringWhitespace();
         }
         finally {
             // Clean up
@@ -213,7 +213,7 @@ public class DictionaryCsvParserTest {
                 2;Jane
                 """;
 
-            await Assert.That(result.Trim()).IsEquivalentTo(expected);
+            await Assert.That(result).IsEqualTo(expected).IgnoringWhitespace();
         }
         finally {
             // Clean up

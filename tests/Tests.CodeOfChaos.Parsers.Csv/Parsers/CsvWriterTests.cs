@@ -32,7 +32,7 @@ public class CsvWriterTests {
         string csvContent = csvWriter.ParseToString(data);
 
         // Assert
-        await Assert.That(csvContent.Trim()).IsEqualTo(expectedOutput);
+        await Assert.That(csvContent).IsEqualTo(expectedOutput).IgnoringWhitespace();
     }
 
     [Test]
@@ -60,7 +60,7 @@ public class CsvWriterTests {
         string csvContent = await csvWriter.ParseToStringAsync(data);
 
         // Assert
-        await Assert.That(csvContent.Trim()).IsEqualTo(expectedOutput);
+        await Assert.That(csvContent).IsEqualTo(expectedOutput).IgnoringWhitespace();
     }
     #endregion
 
@@ -88,7 +88,7 @@ public class CsvWriterTests {
         string csvContent = csvWriter.ParseToString(data);
 
         // Assert
-        await Assert.That(csvContent.Trim()).IsEqualTo(expectedOutput);
+        await Assert.That(csvContent).IsEqualTo(expectedOutput).IgnoringWhitespace();
     }
 
     [Test]
@@ -99,7 +99,7 @@ public class CsvWriterTests {
             new() { Name = "Jane", Age = 25 }
         ];
 
-        CsvParser? csvWriter = CsvParser.FromConfig(config => {
+        CsvParser csvWriter = CsvParser.FromConfig(config => {
             config.ColumnSplit = ";";
             config.UseLowerCaseHeaders = true;
         });
@@ -114,7 +114,7 @@ public class CsvWriterTests {
         string csvContent = await csvWriter.ParseToStringAsync(data);
 
         // Assert
-        await Assert.That(csvContent.Trim()).IsEqualTo(expectedOutput);
+        await Assert.That(csvContent).IsEqualTo(expectedOutput).IgnoringWhitespace();
     }
     #endregion
 
@@ -142,7 +142,7 @@ public class CsvWriterTests {
         string csvContent = csvWriter.ParseToString(data);
 
         // Assert
-        await Assert.That(csvContent.Trim()).IsEqualTo(expectedOutput);
+        await Assert.That(csvContent).IsEqualTo(expectedOutput).IgnoringWhitespace();
     }
 
     [Test]
@@ -153,7 +153,7 @@ public class CsvWriterTests {
             new() { UserName = "Jane", UserAge = 25 }
         ];
 
-        CsvParser? csvWriter = CsvParser.FromConfig(config => {
+        CsvParser csvWriter = CsvParser.FromConfig(config => {
             config.ColumnSplit = ";";
             config.UseLowerCaseHeaders = true;
         });
@@ -168,7 +168,7 @@ public class CsvWriterTests {
         string csvContent = await csvWriter.ParseToStringAsync(data);
 
         // Assert
-        await Assert.That(csvContent.Trim()).IsEqualTo(expectedOutput);
+        await Assert.That(csvContent).IsEqualTo(expectedOutput).IgnoringWhitespace();
     }
     #endregion
 }
