@@ -8,7 +8,7 @@
 
         <!-- Main package name -->
         <PackageId>CodeOfChaos.Parsers.Csv</PackageId>
-        <Version>2.4.0</Version>
+        <Version>2.5.0</Version>
         <Authors>Anna Sas</Authors>
         <Description>A Library to parse csv files in a similar api to regular xml parsing</Description>
         <PackageProjectUrl>https://github.com/code-of-chaos/cs-code_of_chaos-parsers</PackageProjectUrl>
@@ -23,7 +23,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CodeOfChaos.Extensions" Version="0.28.2" />
+        <PackageReference Include="CodeOfChaos.Extensions" Version="0.30.0" />
     </ItemGroup>
 
     <ItemGroup>
